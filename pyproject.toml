@@ -1,6 +1,6 @@
 [project]
 name = "jetson-cli"
-version = "0.1.2"
+version = "0.8.0"
 description = "Agent and CLI for NVIDIA Jetson edge-AI ops — device setup, container builds, and on-device deployment for Jetson Thor / AGX Orin."
 readme = "README.md"
 license = "MIT"
