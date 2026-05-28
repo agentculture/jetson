@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/). This project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-05-28
+
+### Changed
+
+- **Version jumped `0.1.2` → `0.8.0`** to reclaim the `jetson-cli` name as the
+  default install. The PyPI project already carried an unrelated 2025 package
+  ("Jetson Setup Team") that reached `0.7.0`, so our freshly-published `0.1.2`
+  sorted *below* it and `pip install jetson-cli` still resolved to the old
+  code. Bumping above the `0.7.0` ceiling makes our package the latest release.
+  No functional changes — this is a packaging/version-identity bump only.
+
 ## [0.1.2] - 2026-05-28
 
 ### Changed
