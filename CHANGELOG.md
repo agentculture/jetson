@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/). This project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.1] - 2026-05-30
+
+### Changed
+
+- Replaced the CLAUDE.md bootstrap seed with a full runtime/contributor prompt: documents the scaffold-vs-metadata identity split (template not yet specialized to the Jetson domain), the dual CLI + Culture-mesh-agent nature, the agent-first contract (--json, stdout/stderr split, structured CliError, exit-code policy), the register(sub) command-wiring pattern, and the zero-runtime-deps / version-bump-every-PR / CI conventions.
+
 ## [0.8.0] - 2026-05-28
 
 ### Changed
