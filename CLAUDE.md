@@ -233,10 +233,14 @@ Use a branch prefix scoped to the work (`kb/t2`, not `agent/t2`): plain
 `agent/*` names collide with leftovers from earlier fan-outs and
 `git worktree add -b` fails on an existing branch.
 
-**Following the vendored `assign-to-workforce` skill:** its fan-out example uses
-both the shared `../worktrees/` path and `agent/<task-id>` branch names — the
-two things above say not to. That skill is cited verbatim and must not be
-edited, so override *both* when you follow it.
+**Following the vendored `assign-to-workforce` skill:** its fan-out now agrees
+with the location rule above — it computes
+`<parent>/.worktrees.<repo-name>/agent-<task-id>` and explicitly forbids both a
+shared `../worktrees/` and any in-repo path, for the same ownership and
+collision reasons. Only its **branch naming** still conflicts: the example uses
+`agent/<task-id>`, where this repo wants a prefix scoped to the work. That skill
+is cited verbatim and must not be edited, so override the branch name when you
+follow it — the worktree path needs no override.
 
 Remove a worktree with `git worktree remove <path>`, which deletes the directory
 and its bookkeeping together. `git worktree prune` only clears metadata for

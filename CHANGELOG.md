@@ -50,6 +50,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- **Stale worktree override note in `CLAUDE.md`** (Qodo review, PR #2). The
+  note told readers that `assign-to-workforce`'s fan-out uses a shared
+  `../worktrees/` path and had to be overridden. The newly synced skill
+  computes `<parent>/.worktrees.<repo-name>/agent-<task-id>` and explicitly
+  forbids both a shared and an in-repo root — upstream converged on this repo's
+  own convention. Only the `agent/<task-id>` branch naming still conflicts, so
+  that is now the only documented override.
 - **`docs/skill-sources.md` ledger** updated for the sync: eight devague rows
   repointed to `../devague/...` with a `2026-09-05 (devague 0.24.1, direct)`
   stamp, a new `validate-delivery` row, a rewritten intro, and a re-sync
