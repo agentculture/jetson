@@ -1,16 +1,35 @@
 # jetson
 
-A verified, sourced knowledge base of everything known about NVIDIA Jetson devices — usable as a CLI, an MCP server, and a multilingual static site. Every claim cites its source, gaps are stated honestly, and existing projects and contributors are credited.
+A verified, sourced knowledge base of everything known about NVIDIA Jetson
+devices — usable as a CLI, an MCP server, and a multilingual static site. Every
+claim cites its source, gaps are stated honestly, and existing projects and
+contributors are credited.
 
-## What you get
+## Status — scaffold
+
+That paragraph is the **mission**, not a description of what is built. This repo
+was scaffolded from
+[`culture-agent-template`](https://github.com/agentculture/culture-agent-template)
+on 2026-09-05 and, apart from renaming, is still the unmodified template: a
+working agent-first CLI whose verbs are all *introspective*, a mesh identity, the
+vendored skill kit, and a green CI/publish baseline.
+
+Not built yet — no Jetson knowledge-base content, no sourcing/citation model, no
+MCP server, no static site, and no CLI verb that answers a Jetson question. Some
+scaffold prose (the `learn` text, the `explain` catalog, `overview`) still
+describes the repo as a template; rewriting it for this agent's domain is
+unclaimed work. See [`CLAUDE.md`](CLAUDE.md) for the full mission-vs-reality
+breakdown.
+
+## What is here today
 
 - **An agent-first CLI** cited from [teken](https://github.com/agentculture/teken)
   (`afi-cli`) — the runtime package has no third-party dependencies.
-- **A mesh identity** — `culture.yaml` (`suffix` + `backend`) and the matching
-  resident prompt file (`AGENTS.colleague.md`, since this template runs
-  `backend: colleague`).
-- **The canonical guildmaster skill kit** (11 skills) under `.claude/skills/`,
-  vendored cite-don't-import. See [`docs/skill-sources.md`](docs/skill-sources.md).
+- **A mesh identity** — `culture.yaml` (`suffix: jetson`, `backend: colleague`)
+  and its resident prompt file `AGENTS.colleague.md`.
+- **The vendored skill kit** under `.claude/skills/`, cite-don't-import from
+  guildmaster, devague, and colleague. See
+  [`docs/skill-sources.md`](docs/skill-sources.md).
 - **A build + deploy baseline** — pytest, lint, the agent-first rubric gate, and
   PyPI Trusted Publishing wired into GitHub Actions.
 
@@ -19,8 +38,8 @@ A verified, sourced knowledge base of everything known about NVIDIA Jetson devic
 ```bash
 uv sync
 uv run pytest -n auto                 # run the test suite
-uv run jetson whoami  # identity from culture.yaml
-uv run jetson learn   # self-teaching prompt (add --json)
+uv run jetson whoami                  # identity from culture.yaml
+uv run jetson learn                   # self-teaching prompt (add --json)
 uv run teken cli doctor . --strict    # the agent-first rubric gate CI runs
 ```
 
@@ -39,20 +58,11 @@ Every command supports `--json`. Results go to stdout, errors/diagnostics to
 stderr (never mixed). Exit codes: `0` success, `1` user error, `2` environment
 error, `3+` reserved.
 
-## Make it your own
+## Contributing
 
-1. Rename the package `jetson/` and the `jetson`
-   CLI/dist name throughout `pyproject.toml`, the package, `tests/`,
-   `sonar-project.properties`, and this `README.md`. The name is hard-coded in
-   ~100 places, so list every occurrence first — see the `git grep` discovery
-   command in [`CLAUDE.md`](CLAUDE.md), the authoritative rename procedure.
-2. Edit `culture.yaml` with your `suffix` and `backend`.
-3. Rewrite `CLAUDE.md` for your agent and run `/init`.
-4. Re-vendor only the skills you need from guildmaster (see
-   [`docs/skill-sources.md`](docs/skill-sources.md)).
-
-See [`CLAUDE.md`](CLAUDE.md) for the full conventions (version-bump-every-PR,
-the `cicd` PR lane, deploy setup).
+Read [`CLAUDE.md`](CLAUDE.md) first — it carries the conventions:
+version-bump-on-every-PR (CI enforces it), the `cicd` PR lane, the worktree
+location rule, and the hands-off policy for the vendored `.claude/skills/` tree.
 
 ## License
 
