@@ -5,6 +5,70 @@ All notable changes to this project will be documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/). This project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-09-05
+
+### Added
+
+- **`validate-delivery` skill** vendored from devague — the execution-to-evidence
+  leg of the devague method chain, running between `assign-to-workforce` and
+  `summarize-delivery`: it runs the confirmed plan's behavioral tests agent-side
+  after waves merge, then files evidence for what passed and behavioral deltas
+  for what the run added, amended, or removed. The chain is now eight legs:
+  `scope -> think -> challenge -> spec-to-plan -> assign-to-workforce -> deviate
+  -> validate-delivery -> summarize-delivery`.
+
+### Changed
+
+- **`CLAUDE.md` re-initialized for this agent** — replaces the
+  `culture-agent-template` seed placeholder, which was a bootstrap stub that
+  described no repo and wrongly claimed `culture.yaml` declares `backend:
+  claude` (it declares `backend: colleague`, hence `AGENTS.colleague.md`). The
+  new file leads with an explicit **mission vs. reality** section: the Jetson
+  knowledge base, MCP server, and static site named in the project description
+  do not exist yet, and neither does any domain verb — the CLI's verbs are all
+  introspective template scaffold. It also documents the CLI's error/output and
+  argparse contracts, the rubric gate, the vendored-means-vendored rule, the
+  worktree location convention, and the in-repo public memory default.
+- **`README.md` gained a `## Status — scaffold` section** stating the same
+  mission-vs-reality split up front, and no longer presents the repo as the
+  template it was cloned from (the "Make it your own" clone instructions and
+  the stale "11 skills" count are gone).
+- **The seven previously-vendored devague skills re-synced byte-verbatim** from
+  devague 0.24.1 — `scope`, `think`, `challenge`, `spec-to-plan`,
+  `assign-to-workforce`, `deviate`, `summarize-delivery`. Notable upstream
+  content this pulls in: fan-out guidance and `q*`/`--amend` seeds in `scope`,
+  the `lapse` self-report row and `next:` hint in `challenge`, and
+  `instruct`/`amend`/`defer`/multi-id `confirm` plus the enriched
+  `waves --json` payload in `spec-to-plan`.
+- **`think`, `spec-to-plan`, and `assign-to-workforce` now cite devague
+  directly** rather than guildmaster's re-broadcast. At this sync all three of
+  guildmaster's copies lagged devague's source, and guildmaster's copies of the
+  script-less skills additionally carry wrapper scripts the originals do not —
+  so all eight devague-origin skills are now vendored from one place. Recorded
+  as a single tracked divergence in `docs/skill-sources.md`, replacing the
+  narrower four-skill one.
+
+### Fixed
+
+- **Stale worktree override note in `CLAUDE.md`** (Qodo review, PR #2). The
+  note told readers that `assign-to-workforce`'s fan-out uses a shared
+  `../worktrees/` path and had to be overridden. The newly synced skill
+  computes `<parent>/.worktrees.<repo-name>/agent-<task-id>` and explicitly
+  forbids both a shared and an in-repo root — upstream converged on this repo's
+  own convention. Only the `agent/<task-id>` branch naming still conflicts, so
+  that is now the only documented override.
+- **`docs/skill-sources.md` ledger** updated for the sync: eight devague rows
+  repointed to `../devague/...` with a `2026-09-05 (devague 0.24.1, direct)`
+  stamp, a new `validate-delivery` row, a rewritten intro, and a re-sync
+  procedure covering all eight at once.
+- **The `agex` → `devex` divergence note narrowed to what is still patched.**
+  Re-vendoring `assign-to-workforce` byte-verbatim restored upstream's two
+  prose mentions of `agex pr open`. They are deliberately left as upstream
+  wrote them — both are descriptive prose, nothing in that skill invokes the
+  binary, and re-patching would break the `diff -r` check the ledger relies on.
+  The patch remains in force for `cicd` and `communicate`, where the scripts
+  really do call `devex pr`.
+
 ## [0.7.0] - 2026-08-24
 
 ### Added
