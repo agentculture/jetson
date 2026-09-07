@@ -158,8 +158,32 @@ console with no GUI.
     sudo systemctl isolate graphical.target    # bring the GUI up now
     sudo systemctl isolate multi-user.target   # drop to console now
 
+    sudo init 3    # the runlevel spelling of the same switch
+    sudo init 5    # ...and back to the desktop
+
 `isolate` stops units the new target does not want, so do not run it over work
-you care about in the desktop session.
+you care about in the desktop session. `init 3` / `init 5` is the pair
+jetson-containers documents; systemd maps `runlevel3.target` to
+`multi-user.target` and `runlevel5.target` to `graphical.target`.
+
+## The target can be right and the screen still blank
+
+`graphical.target` being default *and* active does not mean anything is on
+screen — the display manager can be up, Xorg and a greeter running, while every
+output reads `disconnected`. Check the two things separately:
+
+    systemctl get-default && systemctl is-active graphical.target
+    grep -H . /sys/class/drm/*/status   # 'connected' on at least one output?
+
+A headless board over SSH looks exactly like a broken desktop if you only read
+`systemctl`. Seeing the desktop from another machine is a remote-desktop question
+(VNC/RDP), not a boot-target one.
+
+## What the desktop costs
+
+jetson-containers puts it at ~800 MB for Unity/GNOME and ~250 MB for LXDE — the
+reason console boot is standard advice on a memory-constrained Jetson. That is
+their figure, not one measured here.
 
 ## If the GUI still does not come up
 
@@ -167,18 +191,28 @@ The display manager unit itself may be disabled or masked — a masked unit cann
 be started, and `graphical.target` comes up without a desktop. Find which unit
 the image actually has, then unmask and enable **that** one:
 
-    systemctl list-unit-files 'gdm3.service' 'lightdm.service'   # which one exists
-    sudo systemctl unmask gdm3 && sudo systemctl enable --now gdm3          # if gdm3
-    sudo systemctl unmask lightdm && sudo systemctl enable --now lightdm    # if lightdm
+    ls -l /etc/systemd/system/display-manager.service   # names the unit...
 
-Which display manager a given JetPack release ships is *not* verified here — it
-is recorded as an unsourced field note, not a claim, which is why the step above
-tells you to look rather than assume.
+If that symlink points at `/dev/null` it is itself masked, and the unit's name is
+gone with it. Fall back to the file masking cannot touch, then repair both:
+
+    cat /etc/X11/default-display-manager      # e.g. /usr/sbin/gdm3
+    sudo systemctl unmask <unit> && sudo systemctl enable --now <unit>
+    sudo systemctl unmask display-manager.service   # if the alias was masked
+
+Do not hard-code the unit name. Debian/Ubuntu (L4T included) point
+`display-manager.service` at whichever manager the image installed — on one
+R38 / Ubuntu 24.04 board `gdm3.service` is merely an alias for `gdm.service`.
+Which manager a given JetPack release ships is *not* verified here; it is a
+field note, not a claim.
 
 ## Sources and gaps
 
-Claims cite the systemd manuals (`systemd.special(7)`, `systemctl(1)`). No
-NVIDIA-published citation is recorded yet — `jetson boot mode --json` carries the
+The generic mechanism cites the systemd manuals (`systemd.special(7)`,
+`systemctl(1)`); the Jetson-specific practice cites
+[dusty-nv/jetson-containers](https://github.com/dusty-nv/jetson-containers)'
+`docs/setup.md`; two claims cite direct observation on a single R38 board. No
+NVIDIA-published citation is recorded yet. `jetson boot mode --json` carries the
 full source list, per-claim confidence, the unsourced field notes, and the
 recorded gaps.
 

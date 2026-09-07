@@ -27,15 +27,44 @@ sudo systemctl set-default multi-user.target   # console on boot
 `set-default` repoints the `default.target` symlink. It needs root, and it does
 not change the running system — reboot, or use `isolate` below.
 
-## Change it for this boot only — `systemctl`
+## Change it for this boot only — `systemctl`, `jetson-containers-setup`
 
 ```bash
 sudo systemctl isolate graphical.target    # bring the GUI up now
 sudo systemctl isolate multi-user.target   # drop to console now
+
+sudo init 3    # the runlevel spelling: stop the desktop
+sudo init 5    # ...and restart it
 ```
 
 `isolate` stops units the new target does not want, so do not run it over work
-you care about in the desktop session.
+you care about in the desktop session. `init 3` / `init 5` — the pair
+jetson-containers documents — is the same switch: systemd maps `runlevel3.target`
+to `multi-user.target` and `runlevel5.target` to `graphical.target`.
+
+## What it costs to leave the desktop on — `jetson-containers-setup`
+
+jetson-containers puts the desktop's memory at **~800 MB for Unity/GNOME** and
+**~250 MB for LXDE** — the reason console boot is standard advice on a
+memory-constrained Jetson. That is their stated figure, not one measured here;
+`free -h` before and after tells you what it is on your board.
+
+## "The target is right and I still see nothing" — `observed-r38`, `systemctl`
+
+`graphical.target` being the default **and** active does not mean anything is on
+screen. The display manager can be running, with Xorg and a greeter alive, while
+every output reads `disconnected` — no monitor attached, nothing to show. Check
+the two things separately:
+
+```bash
+systemctl get-default && systemctl is-active graphical.target
+systemctl is-active display-manager.service
+grep -H . /sys/class/drm/*/status   # 'connected' on at least one output?
+```
+
+A headless board over SSH looks identical to a broken desktop if you only look at
+`systemctl`. Seeing that desktop from another machine is a remote-desktop
+question (VNC/RDP), not a boot-target one.
 
 ## If the GUI still does not come up — `systemctl`
 
@@ -44,22 +73,51 @@ be started, and `graphical.target` comes up without a desktop. Find which displa
 manager unit the image actually has, then unmask and enable **that** one;
 repairing a unit the image does not use changes nothing.
 
-```bash
-systemctl list-unit-files 'gdm3.service' 'lightdm.service'   # which one exists
+Do not guess the unit name — Debian/Ubuntu (L4T included) point
+`/etc/systemd/system/display-manager.service` at whichever one the image
+installed, so ask that symlink first:
 
-sudo systemctl unmask gdm3 && sudo systemctl enable --now gdm3          # if gdm3
-sudo systemctl unmask lightdm && sudo systemctl enable --now lightdm    # if lightdm
+```bash
+ls -l /etc/systemd/system/display-manager.service   # names the unit...
 ```
 
-## Field notes (unsourced — not claims)
+**The trap in the masked case:** masking `display-manager.service` *replaces*
+that symlink with one to `/dev/null`, destroying the only thing that named the
+unit. If you see `-> /dev/null`, fall back to the file Debian writes with the
+chosen manager's binary — masking does not touch it — or list what is installed:
 
-No recorded source supports these, so they are kept out of the claim set and are
-never rendered as sourced:
+```bash
+cat /etc/X11/default-display-manager      # e.g. /usr/sbin/gdm3
+systemctl list-unit-files --type=service | grep -Ei 'gdm|lightdm|sddm|xdm'
+```
 
-- NVIDIA's desktop L4T images are generally reported to ship `gdm3`, with
+Then repair the real unit — and the alias too, if that is what was masked:
+
+```bash
+sudo systemctl unmask <unit> && sudo systemctl enable --now <unit>
+sudo systemctl unmask display-manager.service   # if the alias was masked
+```
+
+## Field notes (not claims)
+
+Observations that are not claims. Each carries its own provenance — `[unsourced]`
+means no recorded source supports it at all; the rest cite a source from the
+table below but rest on a single board, which is why they stay out of the claim
+set:
+
+- **[unsourced]** NVIDIA's desktop L4T images are generally reported to ship `gdm3`, with
   `lightdm` on some images and older releases. Which display manager ships with
   which JetPack release is not verified here — which is why the step above tells
   you to look rather than assume.
+- **[`observed-r38`]** Both outputs read `disconnected` with the whole
+  desktop stack up, and attaching a KVM-over-IP capture device (JetKVM) on HDMI
+  was what made an output appear and the desktop show — the boot target was never
+  the problem. Such a device only presents an EDID once it is **powered**, so an
+  unpowered capture dongle looks exactly like no cable at all.
+- On one L4T R38.2.2 / Ubuntu 24.04.3 board, `gdm3.service` is an **alias** and
+  the real unit is `gdm.service` (with `display-manager.service` symlinked to
+  it). A command hard-coding `gdm3` leans on an alias a future image need not
+  keep. Observed on a single board; not checked across releases.
 
 ## Sources
 
@@ -67,7 +125,14 @@ never rendered as sourced:
 |----|--------|
 | `systemd-special` | [systemd.special(7) — special systemd units](https://www.freedesktop.org/software/systemd/man/latest/systemd.special.html) |
 | `systemctl` | [systemctl(1) — control the systemd system and service manager](https://www.freedesktop.org/software/systemd/man/latest/systemctl.html) |
+| `jetson-containers-setup` | [dusty-nv/jetson-containers — "Disabling the Desktop GUI"](https://github.com/dusty-nv/jetson-containers/blob/master/docs/setup.md#disabling-the-desktop-gui) — Dustin Franklin and contributors |
+| `observed-r38` | Direct observation on a Jetson AGX Thor dev kit — L4T R38.2.2, Ubuntu 24.04.3, 2026-09-07 (`systemctl` / `loginctl` / DRM sysfs output) |
 | `jetson-linux-docs` | [NVIDIA Jetson documentation hub](https://docs.nvidia.com/jetson/) (entry point only — not evidence for a claim) |
+
+The Jetson-specific practice on this page — the `init 3` / `init 5` pair and what
+the desktop costs in memory — is documented by
+[**dusty-nv/jetson-containers**](https://github.com/dusty-nv/jetson-containers)
+and is cited, not restated as if it were ours.
 
 Claim → source mapping, and each claim's confidence, live in
 [`jetson/knowledge/boot_mode.py`](../../jetson/knowledge/boot_mode.py) and are
@@ -75,14 +140,18 @@ emitted by `jetson boot mode --json`.
 
 ## Known gaps
 
-- No NVIDIA-published citation is recorded for any claim here. The mechanism is
-  generic systemd on L4T's Ubuntu userspace, sourced to the systemd manuals.
+- No NVIDIA-published citation is recorded for any claim here. The generic
+  mechanism is sourced to the systemd manuals, the Jetson-specific practice to
+  dusty-nv/jetson-containers (a community project, not a vendor document), and
+  two claims partly to direct observation on a single R38 board.
 - Which display manager ships per JetPack release (`gdm3` vs `lightdm`, and from
   which L4T version) is not verified release-by-release. It is recorded as a
   field note, not a claim.
-- The widely repeated advice that booting to `multi-user.target` frees a useful
-  amount of RAM on a Jetson dev kit is deliberately **not** stated as a claim: no
-  measured, citable figure has been recorded here yet.
+- The memory figure is jetson-containers' stated number, not a measurement taken
+  here, and no per-release or per-board measurement has been recorded.
+- Remote access to the desktop (VNC, RDP, or a streaming host) is named as what a
+  headless board actually needs, but no setup for it is documented here — that is
+  a separate topic.
 - Headless/serial-console specifics (`nvgetty`, the dev kit's serial console
   header) are a neighbouring topic and are not covered.
 

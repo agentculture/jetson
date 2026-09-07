@@ -36,8 +36,11 @@ def boot_sections() -> list[dict[str, object]]:
             "items": [f"{claim['id']} — {claim['statement']}" for claim in boot_mode.CLAIMS],
         },
         {
-            "title": "Field notes (unsourced)",
-            "items": list(boot_mode.FIELD_NOTES),
+            "title": "Field notes (not claims)",
+            "items": [
+                f"[{', '.join(str(c) for c in note['sources']) or 'unsourced'}] {note['note']}"
+                for note in boot_mode.FIELD_NOTES
+            ],
         },
         {
             "title": "Sources",
