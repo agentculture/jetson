@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/). This project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2026-09-07
+
+### Added
+
+- **Two more sources, and credit where it is due.** The Jetson-specific practice on the `boot-mode` topic now cites [`dusty-nv/jetson-containers`](https://github.com/dusty-nv/jetson-containers/blob/master/docs/setup.md#disabling-the-desktop-gui) — the `init 3` / `init 5` pair and the desktop's memory cost (~800 MB GNOME / ~250 MB LXDE) are theirs, cited rather than restated. The `~800 MB` figure moves out of `GAPS` and into a `medium`-confidence claim that says whose number it is. A second new source, `observed-r38`, records direct observation on a Jetson AGX Thor (L4T R38.2.2 / Ubuntu 24.04.3).
+- **A claim for the trap that actually bites people:** `graphical.target` being default *and* active does not mean anything is on screen. The display manager can be up, with Xorg and a greeter running, while every output reads `disconnected`. The claim tells you to check the boot target and `/sys/class/drm/*/status` separately, and names remote desktop (VNC/RDP) as the real answer for a headless board.
+
+### Changed
+
+- **The display-manager repair no longer hard-codes a unit name.** It asks `/etc/systemd/system/display-manager.service`, which Debian/Ubuntu (L4T included) point at whichever manager the image installed. On an R38 board `gdm3.service` turned out to be an *alias* for `gdm.service`, so the previous `unmask gdm3` leaned on an alias a future image need not keep; that observation is recorded as a field note.
+
 ## [0.9.0] - 2026-09-07
 
 ### Added
@@ -16,12 +27,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - **A 1000-line cap on tracked `.py` / `.md` files** (`tests/test_file_length.py`), parametrised one case per file, excluding the vendored `.claude/skills/` tree. A file at the cap gets split, not a raised cap.
 
-- **Two more sources, and credit where it is due.** The Jetson-specific practice on the `boot-mode` topic now cites [`dusty-nv/jetson-containers`](https://github.com/dusty-nv/jetson-containers/blob/master/docs/setup.md#disabling-the-desktop-gui) — the `init 3` / `init 5` pair and the desktop's memory cost (~800 MB GNOME / ~250 MB LXDE) are theirs, cited rather than restated. The `~800 MB` figure moves out of `GAPS` and into a `medium`-confidence claim that says whose number it is. A second new source, `observed-r38`, records direct observation on a Jetson AGX Thor (L4T R38.2.2 / Ubuntu 24.04.3).
-- **A claim for the trap that actually bites people:** `graphical.target` being default *and* active does not mean anything is on screen. The display manager can be up, with Xorg and a greeter running, while every output reads `disconnected`. The claim tells you to check the boot target and `/sys/class/drm/*/status` separately, and names remote desktop (VNC/RDP) as the real answer for a headless board.
 
 ### Fixed
 
-- **The display-manager repair no longer hard-codes a unit name.** It asks `/etc/systemd/system/display-manager.service`, which Debian/Ubuntu (L4T included) point at whichever manager the image installed. On an R38 board `gdm3.service` turned out to be an *alias* for `gdm.service`, so the previous `unmask gdm3` leaned on an alias a future image need not keep; that observation is recorded as a field note.
 - **A noun-level `--json` no longer returns text.** `jetson boot --json mode` and `jetson cli --json overview` parsed fine but emitted markdown: the verb parser's `--json` default overwrote the noun parser's parsed `True` on the shared `json` dest. The verb-level flags now use `default=argparse.SUPPRESS`, so a value parsed at either position survives. The `cli` noun carried the same latent bug and is fixed with it; both positions are covered by a parametrised test.
 
 ### Changed
