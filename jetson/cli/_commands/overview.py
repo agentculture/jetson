@@ -34,7 +34,7 @@ _VERBS = [
 ]
 
 _KNOWLEDGE = [
-    "boot-mode — desktop (GUI) vs console boot; systemd default target " "(jetson boot mode)",
+    "boot-mode — desktop (GUI) vs console boot, the systemd target (jetson boot mode)",
 ]
 
 
