@@ -12,11 +12,11 @@ from __future__ import annotations
 _ROOT = """\
 # jetson
 
-A clonable template for AgentCulture mesh agents. It carries an agent-first CLI
-(cited from the teken `python-cli` reference), a mesh identity (`culture.yaml` +
-`CLAUDE.md`), the canonical guildmaster skill kit under `.claude/skills/`, and a
-buildable/deployable package baseline. Clone it, rename the package, edit
-`culture.yaml`, and you have a new agent.
+An AgentCulture mesh agent whose domain is NVIDIA Jetson devices. The goal is a
+verified, sourced knowledge base — every claim citing its source, gaps stated
+rather than papered over. Most of that is still unbuilt: the CLI carries the
+agent-first introspection verbs it was scaffolded with, plus one sourced domain
+topic (`boot mode`).
 
 ## Verbs
 
@@ -26,6 +26,7 @@ buildable/deployable package baseline. Clone it, rename the package, edit
 - `jetson overview` — descriptive snapshot of the agent.
 - `jetson doctor` — check the agent-identity invariants.
 - `jetson cli overview` — describe the CLI surface.
+- `jetson boot mode` — desktop (GUI) vs console boot, with sources.
 
 ## Exit-code policy
 
@@ -38,6 +39,7 @@ buildable/deployable package baseline. Clone it, rename the package, edit
 
 - `jetson explain whoami`
 - `jetson explain doctor`
+- `jetson explain boot mode`
 """
 
 _WHOAMI = """\
@@ -115,6 +117,74 @@ itself (distinct from the global `overview`, which describes the agent).
     jetson cli overview --json
 """
 
+_BOOT = """\
+# jetson boot
+
+Noun group for Jetson boot-mode knowledge — the first domain noun on this CLI
+(its verbs answer a Jetson question rather than describe the agent).
+
+`boot overview` lists what the noun knows: every claim in the `boot-mode` topic,
+its sources, and its recorded gaps. `boot mode` renders the topic itself.
+
+Read-only and offline: nothing under this noun inspects the running machine or
+shells out, so it reads the same on a Jetson, on a workstation, and in CI.
+
+## Usage
+
+    jetson boot overview
+    jetson boot mode
+    jetson boot mode --json
+"""
+
+_BOOT_MODE = """\
+# jetson boot mode
+
+Desktop (GUI) versus console boot on a Jetson, with the source behind each
+claim.
+
+Jetson Linux (L4T) is an Ubuntu userspace running systemd, so the mode a board
+boots into is the **systemd default target**: `graphical.target` pulls in a
+display manager and boots the desktop; `multi-user.target` boots to a text
+console with no GUI.
+
+## Persistently (takes effect next boot)
+
+    systemctl get-default                          # what it is set to now
+    sudo systemctl set-default graphical.target    # GUI on boot
+    sudo systemctl set-default multi-user.target   # console on boot
+
+## For this boot only
+
+    sudo systemctl isolate graphical.target    # bring the GUI up now
+    sudo systemctl isolate multi-user.target   # drop to console now
+
+`isolate` stops units the new target does not want, so do not run it over work
+you care about in the desktop session.
+
+## If the GUI still does not come up
+
+The display manager unit itself may be disabled or masked — a common leftover
+when the GUI was turned off aggressively rather than via `set-default`:
+
+    systemctl status gdm3    # or: systemctl status lightdm
+    sudo systemctl unmask gdm3 && sudo systemctl enable --now gdm3
+
+NVIDIA's desktop L4T images ship `gdm3`; some images and older releases use
+`lightdm`, so confirm which unit exists before acting.
+
+## Sources and gaps
+
+Claims cite the systemd manuals (`systemd.special(7)`, `systemctl(1)`). No
+NVIDIA-published citation is recorded yet, and the per-JetPack display manager
+is unverified release-by-release — `jetson boot mode --json` carries the full
+source list, per-claim confidence, and the recorded gaps.
+
+## Usage
+
+    jetson boot mode
+    jetson boot mode --json
+"""
+
 
 ENTRIES: dict[tuple[str, ...], str] = {
     (): _ROOT,
@@ -126,4 +196,7 @@ ENTRIES: dict[tuple[str, ...], str] = {
     ("doctor",): _DOCTOR,
     ("cli",): _CLI,
     ("cli", "overview"): _CLI,
+    ("boot",): _BOOT,
+    ("boot", "overview"): _BOOT,
+    ("boot", "mode"): _BOOT_MODE,
 }

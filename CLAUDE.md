@@ -17,12 +17,14 @@ the existing projects and contributors the knowledge comes from are credited.
 
 This repo was scaffolded from
 [`culture-agent-template`](https://github.com/agentculture/culture-agent-template)
-(commit `4681e62`, 2026-09-05) and, apart from the renaming sweep, is still the
-**unmodified template**. What exists on disk today:
+(commit `4681e62`, 2026-09-05) and is still **almost entirely that template**.
+What exists on disk today:
 
-- a working agent-first CLI whose verbs are all **introspective** (`whoami`,
-  `learn`, `explain`, `overview`, `doctor`) — they describe the agent, not
-  Jetson;
+- a working agent-first CLI, whose verbs are **introspective** (`whoami`,
+  `learn`, `explain`, `overview`, `doctor`) except for the `boot` noun;
+- **one** sourced Jetson knowledge topic — `boot-mode` (desktop vs console
+  boot), as data in `jetson/knowledge/boot_mode.py`, rendered by
+  `jetson boot mode` and mirrored in `docs/knowledge/boot-mode.md`;
 - a mesh identity (`culture.yaml` + `AGENTS.colleague.md`);
 - the vendored skill kit under `.claude/skills/`;
 - a green CI/lint/publish baseline.
@@ -33,16 +35,18 @@ tense:
 
 | Planned | Status |
 |---------|--------|
-| Any Jetson knowledge-base content | Nothing. No data files, no schema, no sourcing/citation model. |
+| A Jetson knowledge base | One topic (`boot-mode`). No second topic, no index, no coverage story. |
+| A sourcing/citation schema | Nothing repo-wide. `jetson/knowledge/boot_mode.py` carries a deliberately minimal *local* shape (claims → source ids, confidence, gaps); a real schema, loader, and validation are unbuilt, and that module is what they have to fit. |
 | The MCP server surface | Nothing. No MCP dependency, no server module. |
 | The multilingual static site | Nothing. No site generator, no `docs/site/`, no i18n. |
-| Verbs that answer Jetson questions | Nothing. The CLI has no domain verbs. |
+| Verbs that answer Jetson questions | Two, both under the `boot` noun (`boot mode`, `boot overview`). Every other verb is introspective. |
 
-The package docstrings, `learn` text, `overview` artifacts, `explain` catalog,
-and `README.md` still describe the repo as "a clonable template for AgentCulture
-mesh agents" — inherited scaffold prose that has not been rewritten for this
-agent's domain. Rewriting it is real, unclaimed work; when you touch one of
-those surfaces, fix its prose rather than propagating the template wording.
+The `learn` text, the `explain` catalog root, the parser description, and
+`README.md` were rewritten for this agent's domain when the `boot` noun landed.
+Other surfaces — package/module docstrings, the `overview` "sibling-pattern
+artifacts" list — may still describe the repo as "a clonable template for
+AgentCulture mesh agents". That is inherited scaffold prose; when you touch one
+of those surfaces, fix its prose rather than propagating the template wording.
 
 **Keep this file grounded in checked-in reality.** When a section drifts ahead
 of what is on disk, mark it `(planned)` or move it under a `## Roadmap` heading
@@ -282,7 +286,9 @@ re-derive.
 jetson/                   agent-first CLI (cited from teken's python-cli reference)
   cli/                    parser, error/output contract, _commands/ (verbs)
   explain/                markdown catalog for `explain`
-tests/                    pytest smoke + introspection tests
+  knowledge/              domain content: one module per topic, claims + sources + gaps
+docs/knowledge/           prose mirror of each knowledge topic
+tests/                    pytest smoke + introspection + domain-topic tests
 .claude/skills/           vendored skill kit (cite-don't-import) — never edit in place
 docs/skill-sources.md     skill provenance ledger + re-sync procedures
 culture.yaml              mesh identity (suffix + backend)

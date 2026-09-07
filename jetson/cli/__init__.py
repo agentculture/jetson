@@ -1,9 +1,10 @@
 """Unified CLI entry point for jetson.
 
 The agent-first global verbs (``whoami``, ``learn``, ``explain``, ``overview``,
-``doctor``) are registered here under :mod:`jetson.cli._commands`,
-alongside the ``cli`` noun group. Future noun groups register via their own
-``register()`` functions following the same pattern.
+``doctor``) are registered here under :mod:`jetson.cli._commands`, alongside the
+``cli`` noun group (CLI introspection) and the ``boot`` noun group (Jetson
+boot-mode knowledge). Future noun groups register via their own ``register()``
+functions following the same pattern.
 
 Error propagation contract
 --------------------------
@@ -62,6 +63,7 @@ def _argv_has_json(argv: list[str] | None) -> bool:
 
 
 def _build_parser() -> argparse.ArgumentParser:
+    from jetson.cli._commands import boot as _boot_group
     from jetson.cli._commands import cli as _cli_group
     from jetson.cli._commands import doctor as _doctor_cmd
     from jetson.cli._commands import explain as _explain_cmd
@@ -71,7 +73,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     parser = _CliArgumentParser(
         prog="jetson",
-        description="jetson — a clonable template for AgentCulture mesh agents.",
+        description="jetson — sourced knowledge about NVIDIA Jetson devices.",
     )
     parser.add_argument(
         "--version",
@@ -88,6 +90,7 @@ def _build_parser() -> argparse.ArgumentParser:
     _overview_cmd.register(sub)
     _doctor_cmd.register(sub)
     _cli_group.register(sub)
+    _boot_group.register(sub)
     # Register your own noun groups here:
     #   from jetson.cli._commands import my_noun as _my_noun_group
     #   _my_noun_group.register(sub)
