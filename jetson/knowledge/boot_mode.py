@@ -158,13 +158,21 @@ CLAIMS: list[dict[str, object]] = [
             "started, and graphical.target comes up without a desktop. Do not guess the "
             "unit name: Debian/Ubuntu (L4T included) point "
             "/etc/systemd/system/display-manager.service at whichever one the image "
-            "installed, so ask that symlink and repair the unit it names. Repairing a "
-            "unit the image does not use changes nothing."
+            "installed, so ask that symlink first. Note the trap in the masked case: "
+            "masking display-manager.service *replaces* that symlink with one to "
+            "/dev/null, destroying the only thing that named the unit. Fall back to "
+            "/etc/X11/default-display-manager, which Debian writes with the chosen "
+            "manager's binary and which masking does not touch, or list the installed "
+            "units. Then unmask and enable the real unit — and display-manager.service "
+            "too, if that is what was masked."
         ),
         "commands": [
-            "systemctl status display-manager.service   # resolves to the real unit",
-            "ls -l /etc/systemd/system/display-manager.service   # names it directly",
+            "ls -l /etc/systemd/system/display-manager.service   # names the unit...",
+            "#   ...unless it points at /dev/null — that means it is masked:",
+            "cat /etc/X11/default-display-manager      # e.g. /usr/sbin/gdm3",
+            "systemctl list-unit-files --type=service | grep -Ei 'gdm|lightdm|sddm|xdm'",
             "sudo systemctl unmask <unit> && sudo systemctl enable --now <unit>",
+            "sudo systemctl unmask display-manager.service   # if the alias was masked",
         ],
         "sources": ["systemctl", "observed-r38"],
         "confidence": "high",
@@ -174,21 +182,36 @@ CLAIMS: list[dict[str, object]] = [
 # Unsourced field notes. Deliberately NOT claims: no recorded source supports
 # them, so they are rendered under their own heading and never presented as
 # sourced. Promote one to CLAIMS only when it gains a citation.
-FIELD_NOTES: list[str] = [
-    "NVIDIA's desktop L4T images are generally reported to ship gdm3, with lightdm on "
-    "some images and older releases. Which display manager ships with which JetPack "
-    "release is not verified here — that is why the claim above tells you to look "
-    "rather than assume.",
-    "Confirmed on the same R38 board: both outputs read 'disconnected' with the whole "
-    "desktop stack up, and attaching a KVM-over-IP capture device (JetKVM) on HDMI was "
-    "what made an output appear and the desktop show — the boot target was never the "
-    "problem. Note that such a device only presents an EDID once it is powered, so an "
-    "unpowered capture dongle looks exactly like no cable at all.",
-    "On one L4T R38.2.2 / Ubuntu 24.04.3 board, 'gdm3.service' is an *alias* and the real "
-    "unit is 'gdm.service' (with display-manager.service symlinked to it). A command "
-    "written against a hard-coded 'gdm3' therefore depends on an alias that a future "
-    "image need not keep — one more reason to ask display-manager.service instead. "
-    "Observed on a single board; not checked across releases.",
+FIELD_NOTES: list[dict[str, object]] = [
+    {
+        "note": (
+            "NVIDIA's desktop L4T images are generally reported to ship gdm3, with "
+            "lightdm on some images and older releases. Which display manager ships with "
+            "which JetPack release is not verified here — that is why the claim above "
+            "tells you to look rather than assume."
+        ),
+        "sources": [],
+    },
+    {
+        "note": (
+            "Both outputs read 'disconnected' with the whole desktop stack up, and "
+            "attaching a KVM-over-IP capture device (JetKVM) on HDMI was what made an "
+            "output appear and the desktop show — the boot target was never the problem. "
+            "Such a device only presents an EDID once it is powered, so an unpowered "
+            "capture dongle looks exactly like no cable at all."
+        ),
+        "sources": ["observed-r38"],
+    },
+    {
+        "note": (
+            "'gdm3.service' is an *alias* and the real unit is 'gdm.service' (with "
+            "display-manager.service symlinked to it, and "
+            "/etc/X11/default-display-manager reading /usr/sbin/gdm3). A command written "
+            "against a hard-coded 'gdm3' therefore leans on an alias a future image need "
+            "not keep. One board, one release — not checked across releases."
+        ),
+        "sources": ["observed-r38"],
+    },
 ]
 
 GAPS: list[str] = [
@@ -219,7 +242,7 @@ def as_dict() -> dict[str, object]:
         "summary": SUMMARY,
         "claims": [dict(c) for c in CLAIMS],
         "sources": {k: dict(v) for k, v in SOURCES.items()},
-        "field_notes": list(FIELD_NOTES),
+        "field_notes": [dict(n) for n in FIELD_NOTES],
         "gaps": list(GAPS),
     }
 
@@ -236,10 +259,12 @@ def render_text() -> str:
         for cmd in claim["commands"]:  # type: ignore[union-attr]
             lines.append(f"    {cmd}")
         lines.append("")
-    lines.append("## Field notes (unsourced — not claims)")
+    lines.append("## Field notes (not claims)")
     lines.append("")
     for note in FIELD_NOTES:
-        lines.append(f"- {note}")
+        cites = note["sources"]
+        tag = f"[sources: {', '.join(str(c) for c in cites)}]" if cites else "[unsourced]"
+        lines.append(f"- {tag} {note['note']}")
     lines.append("")
     lines.append("## Sources")
     lines.append("")

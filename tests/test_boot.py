@@ -26,7 +26,9 @@ def test_boot_mode_text(capsys: pytest.CaptureFixture[str]) -> None:
     # gdm3 survives only in the unsourced field note about the alias, never in a
     # command the reader is told to run.
     commands = [str(cmd) for claim in boot_mode.CLAIMS for cmd in claim["commands"]]
-    assert not any("gdm3" in cmd for cmd in commands)
+    acting = [c for c in commands if "unmask" in c or "enable --now" in c]
+    assert acting
+    assert not any("gdm3" in c for c in acting), "no command may act on a hard-coded unit"
     # The runlevel spelling jetson-containers documents.
     assert "init 3" in out
 
@@ -68,7 +70,7 @@ def test_vendor_specifics_are_field_notes_not_claims() -> None:
     statements = " ".join(str(claim["statement"]) for claim in boot_mode.CLAIMS).lower()
     assert "gdm3" not in statements
     assert "lightdm" not in statements
-    assert any("gdm3" in note for note in boot_mode.FIELD_NOTES)
+    assert any("gdm3" in str(note["note"]) for note in boot_mode.FIELD_NOTES)
     assert "unsourced" in boot_mode.render_text().lower()
 
 
@@ -98,6 +100,38 @@ def test_a_live_target_is_not_a_live_screen() -> None:
     )
     assert any("/sys/class/drm" in str(cmd) for cmd in claim["commands"])
     assert "disconnected" in str(claim["statement"])
+
+
+def test_field_notes_carry_their_own_provenance() -> None:
+    """A field note is not automatically unsourced (PR #4 review).
+
+    Some rest on a recorded observation and cite it; others have nothing behind
+    them. The reader must be able to tell which, so every note declares its own
+    source list and every cited id must exist.
+    """
+    for note in boot_mode.FIELD_NOTES:
+        assert str(note["note"]).strip()
+        assert isinstance(note["sources"], list)
+        for source_id in note["sources"]:
+            assert source_id in boot_mode.SOURCES, f"unknown source {source_id}"
+    assert any(note["sources"] for note in boot_mode.FIELD_NOTES)
+    assert any(not note["sources"] for note in boot_mode.FIELD_NOTES)
+    rendered = boot_mode.render_text()
+    assert "[unsourced]" in rendered
+    assert "[sources: observed-r38]" in rendered
+
+
+def test_masked_alias_has_a_discovery_fallback() -> None:
+    """Masking display-manager.service destroys the symlink that named the unit.
+
+    The repair therefore cannot rest on that symlink alone — it needs a path that
+    masking does not touch (PR #4 review).
+    """
+    claim = next(c for c in boot_mode.CLAIMS if c["id"] == "display-manager-may-be-disabled")
+    commands = " ".join(str(cmd) for cmd in claim["commands"])
+    assert "/dev/null" in commands
+    assert "/etc/X11/default-display-manager" in commands
+    assert "unmask display-manager.service" in commands
 
 
 # --- --json in either position -------------------------------------------

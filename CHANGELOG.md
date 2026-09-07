@@ -12,8 +12,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **Two more sources, and credit where it is due.** The Jetson-specific practice on the `boot-mode` topic now cites [`dusty-nv/jetson-containers`](https://github.com/dusty-nv/jetson-containers/blob/master/docs/setup.md#disabling-the-desktop-gui) — the `init 3` / `init 5` pair and the desktop's memory cost (~800 MB GNOME / ~250 MB LXDE) are theirs, cited rather than restated. The `~800 MB` figure moves out of `GAPS` and into a `medium`-confidence claim that says whose number it is. A second new source, `observed-r38`, records direct observation on a Jetson AGX Thor (L4T R38.2.2 / Ubuntu 24.04.3).
 - **A claim for the trap that actually bites people:** `graphical.target` being default *and* active does not mean anything is on screen. The display manager can be up, with Xorg and a greeter running, while every output reads `disconnected`. The claim tells you to check the boot target and `/sys/class/drm/*/status` separately, and names remote desktop (VNC/RDP) as the real answer for a headless board.
 
+### Fixed
+
+- **A masked `display-manager.service` broke its own repair.** The recovery procedure read `/etc/systemd/system/display-manager.service` to learn the unit name — but masking that alias *replaces* the symlink with one to `/dev/null`, destroying exactly that information. The claim now names the trap and falls back to `/etc/X11/default-display-manager` (which masking does not touch, confirmed reading `/usr/sbin/gdm3` on this board) or a unit listing, and unmasks the alias itself when that is what was masked. Found by review on #4.
+
 ### Changed
 
+- **Field notes carry their own provenance.** They were rendered under one "unsourced" heading, which was wrong for the ones resting on a recorded observation. Each note now declares its own `sources` list and renders as `[unsourced]` or `[sources: observed-r38]`, so a reader can tell which is which without opening the module.
 - **The headless claim now carries a confirmed case.** On the same board, attaching a KVM-over-IP capture device (JetKVM) on HDMI is what made an output appear and the desktop show — recorded as a field note, along with the reason a *powered* capture device matters: it presents no EDID until it has power, so an unpowered dongle is indistinguishable from no cable.
 - **The display-manager repair no longer hard-codes a unit name.** It asks `/etc/systemd/system/display-manager.service`, which Debian/Ubuntu (L4T included) point at whichever manager the image installed. On an R38 board `gdm3.service` turned out to be an *alias* for `gdm.service`, so the previous `unmask gdm3` leaned on an alias a future image need not keep; that observation is recorded as a field note.
 

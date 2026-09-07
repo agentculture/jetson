@@ -75,25 +75,41 @@ repairing a unit the image does not use changes nothing.
 
 Do not guess the unit name — Debian/Ubuntu (L4T included) point
 `/etc/systemd/system/display-manager.service` at whichever one the image
-installed, so ask that symlink and repair the unit it names:
+installed, so ask that symlink first:
 
 ```bash
-systemctl status display-manager.service            # resolves to the real unit
-ls -l /etc/systemd/system/display-manager.service   # names it directly
-
-sudo systemctl unmask <unit> && sudo systemctl enable --now <unit>
+ls -l /etc/systemd/system/display-manager.service   # names the unit...
 ```
 
-## Field notes (unsourced — not claims)
+**The trap in the masked case:** masking `display-manager.service` *replaces*
+that symlink with one to `/dev/null`, destroying the only thing that named the
+unit. If you see `-> /dev/null`, fall back to the file Debian writes with the
+chosen manager's binary — masking does not touch it — or list what is installed:
 
-No recorded source supports these, so they are kept out of the claim set and are
-never rendered as sourced:
+```bash
+cat /etc/X11/default-display-manager      # e.g. /usr/sbin/gdm3
+systemctl list-unit-files --type=service | grep -Ei 'gdm|lightdm|sddm|xdm'
+```
 
-- NVIDIA's desktop L4T images are generally reported to ship `gdm3`, with
+Then repair the real unit — and the alias too, if that is what was masked:
+
+```bash
+sudo systemctl unmask <unit> && sudo systemctl enable --now <unit>
+sudo systemctl unmask display-manager.service   # if the alias was masked
+```
+
+## Field notes (not claims)
+
+Observations that are not claims. Each carries its own provenance — `[unsourced]`
+means no recorded source supports it at all; the rest cite a source from the
+table below but rest on a single board, which is why they stay out of the claim
+set:
+
+- **[unsourced]** NVIDIA's desktop L4T images are generally reported to ship `gdm3`, with
   `lightdm` on some images and older releases. Which display manager ships with
   which JetPack release is not verified here — which is why the step above tells
   you to look rather than assume.
-- Confirmed on the same R38 board: both outputs read `disconnected` with the whole
+- **[`observed-r38`]** Both outputs read `disconnected` with the whole
   desktop stack up, and attaching a KVM-over-IP capture device (JetKVM) on HDMI
   was what made an output appear and the desktop show — the boot target was never
   the problem. Such a device only presents an EDID once it is **powered**, so an

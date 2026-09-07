@@ -191,15 +191,20 @@ The display manager unit itself may be disabled or masked — a masked unit cann
 be started, and `graphical.target` comes up without a desktop. Find which unit
 the image actually has, then unmask and enable **that** one:
 
-    systemctl status display-manager.service            # resolves to the real unit
-    ls -l /etc/systemd/system/display-manager.service   # names it directly
+    ls -l /etc/systemd/system/display-manager.service   # names the unit...
+
+If that symlink points at `/dev/null` it is itself masked, and the unit's name is
+gone with it. Fall back to the file masking cannot touch, then repair both:
+
+    cat /etc/X11/default-display-manager      # e.g. /usr/sbin/gdm3
     sudo systemctl unmask <unit> && sudo systemctl enable --now <unit>
+    sudo systemctl unmask display-manager.service   # if the alias was masked
 
 Do not hard-code the unit name. Debian/Ubuntu (L4T included) point
 `display-manager.service` at whichever manager the image installed — on one
 R38 / Ubuntu 24.04 board `gdm3.service` is merely an alias for `gdm.service`.
-Which manager a given JetPack release ships is *not* verified here; it is an
-unsourced field note, not a claim.
+Which manager a given JetPack release ships is *not* verified here; it is a
+field note, not a claim.
 
 ## Sources and gaps
 
