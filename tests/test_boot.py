@@ -19,10 +19,16 @@ def test_boot_mode_text(capsys: pytest.CaptureFixture[str]) -> None:
     assert "graphical.target" in out
     assert "multi-user.target" in out
     assert "systemctl set-default" in out
-    # Both display managers get a repair command — a gdm3-only fix strands a
-    # lightdm image (PR #3 review).
-    assert "enable --now gdm3" in out
-    assert "enable --now lightdm" in out
+    # The repair asks display-manager.service rather than hard-coding a unit —
+    # a gdm3-only fix strands a lightdm image, and on R38 `gdm3` is only an
+    # alias for `gdm` (PR #3 review + observation on this board).
+    assert "display-manager.service" in out
+    # gdm3 survives only in the unsourced field note about the alias, never in a
+    # command the reader is told to run.
+    commands = [str(cmd) for claim in boot_mode.CLAIMS for cmd in claim["commands"]]
+    assert not any("gdm3" in cmd for cmd in commands)
+    # The runlevel spelling jetson-containers documents.
+    assert "init 3" in out
 
 
 def test_boot_mode_json_shape(capsys: pytest.CaptureFixture[str]) -> None:
@@ -64,6 +70,34 @@ def test_vendor_specifics_are_field_notes_not_claims() -> None:
     assert "lightdm" not in statements
     assert any("gdm3" in note for note in boot_mode.FIELD_NOTES)
     assert "unsourced" in boot_mode.render_text().lower()
+
+
+def test_jetson_specific_practice_credits_jetson_containers() -> None:
+    """Borrowed knowledge is cited, not restated as ours.
+
+    The init 3 / init 5 pair and the desktop's memory cost come from
+    dusty-nv/jetson-containers; the mission is to credit the projects the
+    knowledge comes from, so both claims must cite that source and the source
+    must name the project.
+    """
+    source = boot_mode.SOURCES["jetson-containers-setup"]
+    assert "jetson-containers" in source["title"]
+    assert "dusty-nv/jetson-containers" in source["url"]
+    borrowed = {"init-3-and-5-toggle-the-desktop", "desktop-costs-memory"}
+    for claim in boot_mode.CLAIMS:
+        if claim["id"] in borrowed:
+            assert "jetson-containers-setup" in claim["sources"], claim["id"]
+            borrowed.discard(claim["id"])
+    assert not borrowed, f"claims went missing: {borrowed}"
+
+
+def test_a_live_target_is_not_a_live_screen() -> None:
+    """The headless trap gets its own claim — it is what actually bites people."""
+    claim = next(
+        c for c in boot_mode.CLAIMS if c["id"] == "target-says-nothing-about-a-connected-display"
+    )
+    assert any("/sys/class/drm" in str(cmd) for cmd in claim["commands"])
+    assert "disconnected" in str(claim["statement"])
 
 
 # --- --json in either position -------------------------------------------
