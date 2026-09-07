@@ -26,7 +26,9 @@ def test_boot_mode_json_shape(capsys: pytest.CaptureFixture[str]) -> None:
     assert rc == 0
     payload = json.loads(capsys.readouterr().out)
     assert payload["topic"] == "boot-mode"
-    assert payload["claims"] and payload["sources"] and payload["gaps"]
+    assert payload["claims"]
+    assert payload["sources"]
+    assert payload["gaps"]
     for claim in payload["claims"]:
         assert {"id", "statement", "commands", "sources", "confidence"} <= set(claim)
 

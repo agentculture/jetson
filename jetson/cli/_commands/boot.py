@@ -18,6 +18,8 @@ from jetson.cli._commands.overview import emit_overview
 from jetson.cli._output import emit_result
 from jetson.knowledge import boot_mode
 
+_JSON_HELP = "Emit structured JSON."
+
 
 def boot_sections() -> list[dict[str, object]]:
     """Sections describing what the ``boot`` noun knows."""
@@ -69,7 +71,7 @@ def register(sub: argparse._SubParsersAction) -> None:
         "boot",
         help="Jetson boot-mode knowledge (see 'jetson boot mode').",
     )
-    p.add_argument("--json", action="store_true", help="Emit structured JSON.")
+    p.add_argument("--json", action="store_true", help=_JSON_HELP)
     p.set_defaults(func=_no_verb, json=False)
     # Propagate the parser class so nested parse errors keep the structured
     # error contract (see _commands/cli.py for the same pattern).
@@ -79,9 +81,9 @@ def register(sub: argparse._SubParsersAction) -> None:
         "mode",
         help="Desktop (GUI) vs console boot: the systemd default target, with sources.",
     )
-    m.add_argument("--json", action="store_true", help="Emit structured JSON.")
+    m.add_argument("--json", action="store_true", help=_JSON_HELP)
     m.set_defaults(func=cmd_boot_mode)
 
     ov = noun_sub.add_parser("overview", help="Describe what the boot noun knows.")
-    ov.add_argument("--json", action="store_true", help="Emit structured JSON.")
+    ov.add_argument("--json", action="store_true", help=_JSON_HELP)
     ov.set_defaults(func=cmd_boot_overview)
