@@ -14,11 +14,11 @@ on 2026-09-05 and, apart from renaming, is still the unmodified template: a
 working agent-first CLI whose verbs are all *introspective*, a mesh identity, the
 vendored skill kit, and a green CI/publish baseline.
 
-Not built yet — no Jetson knowledge-base content, no sourcing/citation model, no
-MCP server, no static site, and no CLI verb that answers a Jetson question. Some
-scaffold prose (the `learn` text, the `explain` catalog, `overview`) still
-describes the repo as a template; rewriting it for this agent's domain is
-unclaimed work. See [`CLAUDE.md`](CLAUDE.md) for the full mission-vs-reality
+The first domain content has landed since: one sourced knowledge topic,
+[`boot-mode`](docs/knowledge/boot-mode.md), and the `boot` noun that renders it.
+Still not built — an MCP server, the multilingual static site, a repo-wide
+sourcing/citation schema (the one topic carries a minimal local shape), and any
+other Jetson topic. See [`CLAUDE.md`](CLAUDE.md) for the full mission-vs-reality
 breakdown.
 
 ## What is here today
@@ -53,10 +53,27 @@ uv run teken cli doctor . --strict    # the agent-first rubric gate CI runs
 | `overview` | Read-only descriptive snapshot of the agent. |
 | `doctor` | Check the agent-identity invariants (prompt-file-present, backend-consistency). |
 | `cli overview` | Describe the CLI surface itself. |
+| `boot mode` | Desktop (GUI) vs console boot on a Jetson, with sources. |
+| `boot overview` | What the `boot` noun knows: claims, sources, and recorded gaps. |
 
 Every command supports `--json`. Results go to stdout, errors/diagnostics to
 stderr (never mixed). Exit codes: `0` success, `1` user error, `2` environment
 error, `3+` reserved.
+
+## Knowledge base
+
+Domain content lives in `jetson/knowledge/` as plain Python data — claims, the
+commands they justify, source ids, per-claim confidence, and an explicit gap
+list — rendered by the CLI and mirrored as prose under `docs/knowledge/`.
+
+| Topic | CLI | Doc |
+|-------|-----|-----|
+| `boot-mode` | `jetson boot mode` | [`docs/knowledge/boot-mode.md`](docs/knowledge/boot-mode.md) |
+
+```bash
+uv run jetson boot mode            # markdown, citations inline
+uv run jetson boot mode --json     # claims + sources + gaps, machine-readable
+```
 
 ## Contributing
 

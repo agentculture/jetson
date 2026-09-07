@@ -30,6 +30,11 @@ _VERBS = [
     "explain <path> — markdown docs for a topic",
     "overview — this descriptive snapshot",
     "doctor — check the agent-identity invariants",
+    "boot mode — desktop (GUI) vs console boot, with sources",
+]
+
+_KNOWLEDGE = [
+    "boot-mode — desktop (GUI) vs console boot, the systemd target (jetson boot mode)",
 ]
 
 
@@ -47,6 +52,7 @@ def agent_sections() -> list[dict[str, object]]:
             ],
         },
         {"title": "Verbs", "items": list(_VERBS)},
+        {"title": "Knowledge topics", "items": list(_KNOWLEDGE)},
         {"title": "Sibling-pattern artifacts", "items": list(_ARTIFACTS)},
     ]
 

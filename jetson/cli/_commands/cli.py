@@ -39,5 +39,9 @@ def register(sub: argparse._SubParsersAction) -> None:
     # the structured error contract instead of argparse's default stderr/exit 2.
     noun_sub = p.add_subparsers(dest="cli_command", parser_class=type(p))
     ov = noun_sub.add_parser("overview", help="Describe the jetson CLI surface.")
-    ov.add_argument("--json", action="store_true", help="Emit structured JSON.")
+    # default=SUPPRESS so `jetson cli --json overview` keeps the parent's True:
+    # a child default would otherwise overwrite it on the shared `json` dest.
+    ov.add_argument(
+        "--json", action="store_true", default=argparse.SUPPRESS, help="Emit structured JSON."
+    )
     ov.set_defaults(func=cmd_cli_overview)

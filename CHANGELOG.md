@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/). This project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2026-09-07
+
+### Added
+
+- **The `boot` noun — this agent's first domain verbs.** `jetson boot mode` answers desktop (GUI) versus console boot on a Jetson: the systemd default target (`graphical.target` vs `multi-user.target`), `systemctl set-default` for a persistent change, `systemctl isolate` for the current boot only, and the display-manager check for when the GUI still does not come up. `jetson boot overview` describes what the noun knows — every claim, its sources, and its recorded gaps. Both are read-only and offline: nothing inspects the running machine or shells out, so the output reads the same on a Jetson, on a workstation, and in CI.
+- **`jetson/knowledge/` — domain content as data**, separate from the CLI that renders it, one module per topic. `boot_mode.py` is the first: a summary, ordered claims (each with the commands it justifies, source ids, and a confidence), a source table, and an explicit gap list, all JSON-serialisable via `as_dict()`. This is a deliberately minimal *local* shape, not a repo-wide citation schema — when a schema lands, this module is what it has to fit.
+- **`docs/knowledge/boot-mode.md`** — the prose mirror of the topic, with per-section source ids, the source table, the unsourced field notes, and the known gaps stated in full.
+- **Explain entries and tests for the new surface** — `explain boot`, `explain boot mode`, and `tests/test_boot.py`, which covers both verbs in text and JSON and guards the sourcing contract (no claim may cite a source id that does not exist; every source carries a title and an https URL).
+
+- **A 1000-line cap on tracked `.py` / `.md` files** (`tests/test_file_length.py`), parametrised one case per file, excluding the vendored `.claude/skills/` tree. A file at the cap gets split, not a raised cap.
+
+### Fixed
+
+- **A noun-level `--json` no longer returns text.** `jetson boot --json mode` and `jetson cli --json overview` parsed fine but emitted markdown: the verb parser's `--json` default overwrote the noun parser's parsed `True` on the shared `json` dest. The verb-level flags now use `default=argparse.SUPPRESS`, so a value parsed at either position survives. The `cli` noun carried the same latent bug and is fixed with it; both positions are covered by a parametrised test.
+
+### Changed
+
+- **Scaffold prose rewritten on the surfaces this touched** — the `learn` text, the `explain` catalog root, and the top-level parser description no longer describe the repo as "a clonable template for AgentCulture mesh agents"; they describe a Jetson knowledge agent that today carries introspection verbs plus one sourced topic. `overview` gained a **Knowledge topics** section.
+- **Unsourced detail is separated from sourced claims.** A topic now carries `FIELD_NOTES` alongside `CLAIMS`: the gdm3-vs-lightdm mapping has no recorded citation, so it is rendered under its own "unsourced — not claims" heading rather than riding along inside a claim that cites only the generic `systemctl` manual. A test pins the separation.
+- **`CLAUDE.md` and `README.md` re-grounded.** The mission-vs-reality table no longer says there is no knowledge-base content and no domain verb; it now names the one topic and the two verbs, and splits out "a sourcing/citation schema" as the thing that is still unbuilt. `README.md` gained a **Knowledge base** section and the two new CLI rows.
+
 ## [0.8.0] - 2026-09-05
 
 ### Added

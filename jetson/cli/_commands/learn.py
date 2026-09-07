@@ -12,14 +12,15 @@ from jetson import __version__
 from jetson.cli._output import emit_result
 
 _TEXT = """\
-jetson — a clonable template for AgentCulture mesh agents.
+jetson — an AgentCulture mesh agent whose domain is NVIDIA Jetson devices.
 
 Purpose
 -------
-Scaffold for a new Culture mesh agent: an agent-first CLI (cited from the teken
-`python-cli` reference), an identity (culture.yaml + CLAUDE.md), the canonical
-guildmaster skill kit under .claude/skills/, and a deploy/CI baseline. Clone it,
-rename the package, and edit culture.yaml to mint a new agent.
+A verified, sourced knowledge base about Jetson hardware, JetPack, and the
+surrounding ecosystem: every claim cites its source and gaps are stated rather
+than papered over. Most of that is still unbuilt — the CLI carries the
+agent-first introspection verbs it was scaffolded with (cited from the teken
+`python-cli` reference), plus one sourced domain topic so far, `boot mode`.
 
 Commands
 --------
@@ -29,6 +30,8 @@ Commands
   jetson overview           Descriptive snapshot of the agent.
   jetson doctor             Check the agent-identity invariants.
   jetson cli overview       Describe the CLI surface itself.
+  jetson boot mode          Desktop (GUI) vs console boot, with sources.
+  jetson boot overview      What the boot noun knows (claims, sources, gaps).
 
 Machine-readable output
 -----------------------
@@ -52,7 +55,7 @@ def _as_json_payload() -> dict[str, object]:
     return {
         "tool": "jetson",
         "version": __version__,
-        "purpose": "Clonable scaffold for a new AgentCulture mesh agent.",
+        "purpose": "Sourced knowledge about NVIDIA Jetson devices, as an agent-first CLI.",
         "commands": [
             {"path": ["whoami"], "summary": "Identity probe from culture.yaml."},
             {"path": ["learn"], "summary": "Self-teaching prompt."},
@@ -60,6 +63,14 @@ def _as_json_payload() -> dict[str, object]:
             {"path": ["overview"], "summary": "Descriptive snapshot of the agent."},
             {"path": ["doctor"], "summary": "Check the agent-identity invariants."},
             {"path": ["cli", "overview"], "summary": "Describe the CLI surface."},
+            {
+                "path": ["boot", "mode"],
+                "summary": "Desktop (GUI) vs console boot, with sources.",
+            },
+            {
+                "path": ["boot", "overview"],
+                "summary": "What the boot noun knows (claims, sources, gaps).",
+            },
         ],
         "exit_codes": {
             "0": "success",
