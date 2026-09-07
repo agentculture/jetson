@@ -83,19 +83,29 @@ CLAIMS: list[dict[str, object]] = [
         "id": "display-manager-may-be-disabled",
         "statement": (
             "If graphical.target is the default but no desktop appears, the display "
-            "manager unit itself may be disabled or masked — a common leftover when the "
-            "GUI was turned off aggressively rather than via set-default. Check the "
-            "unit, then unmask and enable it. NVIDIA's desktop L4T images ship gdm3; "
-            "some images and older releases use lightdm, so confirm which unit exists "
-            "before acting."
+            "manager unit itself may be disabled or masked — a masked unit cannot be "
+            "started, and graphical.target comes up without a desktop. Find which "
+            "display manager unit the image actually has, then unmask and enable that "
+            "one. Repairing a unit the image does not use changes nothing."
         ),
         "commands": [
-            "systemctl status gdm3    # or: systemctl status lightdm",
-            "sudo systemctl unmask gdm3 && sudo systemctl enable --now gdm3",
+            "systemctl list-unit-files 'gdm3.service' 'lightdm.service'   # which one exists",
+            "sudo systemctl unmask gdm3 && sudo systemctl enable --now gdm3        # if gdm3",
+            "sudo systemctl unmask lightdm && sudo systemctl enable --now lightdm  # if lightdm",
         ],
         "sources": ["systemctl"],
-        "confidence": "medium",
+        "confidence": "high",
     },
+]
+
+# Unsourced field notes. Deliberately NOT claims: no recorded source supports
+# them, so they are rendered under their own heading and never presented as
+# sourced. Promote one to CLAIMS only when it gains a citation.
+FIELD_NOTES: list[str] = [
+    "NVIDIA's desktop L4T images are generally reported to ship gdm3, with lightdm on "
+    "some images and older releases. Which display manager ships with which JetPack "
+    "release is not verified here — that is why the claim above tells you to look "
+    "rather than assume.",
 ]
 
 GAPS: list[str] = [
@@ -103,8 +113,8 @@ GAPS: list[str] = [
     "generic systemd on L4T's Ubuntu userspace, sourced to the systemd manuals; the "
     "vendor docs hub is listed only as an entry point, not as evidence for a claim.",
     "Which display manager ships per JetPack release (gdm3 vs lightdm, and from which "
-    "L4T version) is not verified release-by-release — hence the 'medium' confidence on "
-    "display-manager-may-be-disabled.",
+    "L4T version) is not verified release-by-release. It is recorded as a FIELD_NOTE, "
+    "not a claim, so it is never rendered as sourced.",
     "The widely repeated advice that booting to multi-user.target frees a useful amount "
     "of RAM on a Jetson dev kit is deliberately not stated as a claim: no measured, "
     "citable figure has been recorded here yet.",
@@ -121,6 +131,7 @@ def as_dict() -> dict[str, object]:
         "summary": SUMMARY,
         "claims": [dict(c) for c in CLAIMS],
         "sources": {k: dict(v) for k, v in SOURCES.items()},
+        "field_notes": list(FIELD_NOTES),
         "gaps": list(GAPS),
     }
 
@@ -137,6 +148,11 @@ def render_text() -> str:
         for cmd in claim["commands"]:  # type: ignore[union-attr]
             lines.append(f"    {cmd}")
         lines.append("")
+    lines.append("## Field notes (unsourced — not claims)")
+    lines.append("")
+    for note in FIELD_NOTES:
+        lines.append(f"- {note}")
+    lines.append("")
     lines.append("## Sources")
     lines.append("")
     for sid, src in SOURCES.items():

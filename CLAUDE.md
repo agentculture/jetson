@@ -288,7 +288,8 @@ jetson/                   agent-first CLI (cited from teken's python-cli referen
   explain/                markdown catalog for `explain`
   knowledge/              domain content: one module per topic, claims + sources + gaps
 docs/knowledge/           prose mirror of each knowledge topic
-tests/                    pytest smoke + introspection + domain-topic tests
+tests/                    pytest smoke + introspection + domain-topic tests,
+                          plus a 1000-line cap on tracked .py/.md files
 .claude/skills/           vendored skill kit (cite-don't-import) — never edit in place
 docs/skill-sources.md     skill provenance ledger + re-sync procedures
 culture.yaml              mesh identity (suffix + backend)

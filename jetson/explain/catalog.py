@@ -163,21 +163,24 @@ you care about in the desktop session.
 
 ## If the GUI still does not come up
 
-The display manager unit itself may be disabled or masked — a common leftover
-when the GUI was turned off aggressively rather than via `set-default`:
+The display manager unit itself may be disabled or masked — a masked unit cannot
+be started, and `graphical.target` comes up without a desktop. Find which unit
+the image actually has, then unmask and enable **that** one:
 
-    systemctl status gdm3    # or: systemctl status lightdm
-    sudo systemctl unmask gdm3 && sudo systemctl enable --now gdm3
+    systemctl list-unit-files 'gdm3.service' 'lightdm.service'   # which one exists
+    sudo systemctl unmask gdm3 && sudo systemctl enable --now gdm3          # if gdm3
+    sudo systemctl unmask lightdm && sudo systemctl enable --now lightdm    # if lightdm
 
-NVIDIA's desktop L4T images ship `gdm3`; some images and older releases use
-`lightdm`, so confirm which unit exists before acting.
+Which display manager a given JetPack release ships is *not* verified here — it
+is recorded as an unsourced field note, not a claim, which is why the step above
+tells you to look rather than assume.
 
 ## Sources and gaps
 
 Claims cite the systemd manuals (`systemd.special(7)`, `systemctl(1)`). No
-NVIDIA-published citation is recorded yet, and the per-JetPack display manager
-is unverified release-by-release — `jetson boot mode --json` carries the full
-source list, per-claim confidence, and the recorded gaps.
+NVIDIA-published citation is recorded yet — `jetson boot mode --json` carries the
+full source list, per-claim confidence, the unsourced field notes, and the
+recorded gaps.
 
 ## Usage
 

@@ -36,6 +36,10 @@ def boot_sections() -> list[dict[str, object]]:
             "items": [f"{claim['id']} — {claim['statement']}" for claim in boot_mode.CLAIMS],
         },
         {
+            "title": "Field notes (unsourced)",
+            "items": list(boot_mode.FIELD_NOTES),
+        },
+        {
             "title": "Sources",
             "items": [f"{src['title']} — {src['url']}" for src in boot_mode.SOURCES.values()],
         },
@@ -81,9 +85,11 @@ def register(sub: argparse._SubParsersAction) -> None:
         "mode",
         help="Desktop (GUI) vs console boot: the systemd default target, with sources.",
     )
-    m.add_argument("--json", action="store_true", help=_JSON_HELP)
+    # default=SUPPRESS so `jetson boot --json mode` keeps the parent's True:
+    # a child default would otherwise overwrite it on the shared `json` dest.
+    m.add_argument("--json", action="store_true", default=argparse.SUPPRESS, help=_JSON_HELP)
     m.set_defaults(func=cmd_boot_mode)
 
     ov = noun_sub.add_parser("overview", help="Describe what the boot noun knows.")
-    ov.add_argument("--json", action="store_true", help=_JSON_HELP)
+    ov.add_argument("--json", action="store_true", default=argparse.SUPPRESS, help=_JSON_HELP)
     ov.set_defaults(func=cmd_boot_overview)
