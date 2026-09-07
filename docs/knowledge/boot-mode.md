@@ -93,6 +93,11 @@ never rendered as sourced:
   `lightdm` on some images and older releases. Which display manager ships with
   which JetPack release is not verified here — which is why the step above tells
   you to look rather than assume.
+- Confirmed on the same R38 board: both outputs read `disconnected` with the whole
+  desktop stack up, and attaching a KVM-over-IP capture device (JetKVM) on HDMI
+  was what made an output appear and the desktop show — the boot target was never
+  the problem. Such a device only presents an EDID once it is **powered**, so an
+  unpowered capture dongle looks exactly like no cable at all.
 - On one L4T R38.2.2 / Ubuntu 24.04.3 board, `gdm3.service` is an **alias** and
   the real unit is `gdm.service` (with `display-manager.service` symlinked to
   it). A command hard-coding `gdm3` leans on an alias a future image need not

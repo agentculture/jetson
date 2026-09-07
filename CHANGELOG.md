@@ -14,6 +14,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- **The headless claim now carries a confirmed case.** On the same board, attaching a KVM-over-IP capture device (JetKVM) on HDMI is what made an output appear and the desktop show — recorded as a field note, along with the reason a *powered* capture device matters: it presents no EDID until it has power, so an unpowered dongle is indistinguishable from no cable.
 - **The display-manager repair no longer hard-codes a unit name.** It asks `/etc/systemd/system/display-manager.service`, which Debian/Ubuntu (L4T included) point at whichever manager the image installed. On an R38 board `gdm3.service` turned out to be an *alias* for `gdm.service`, so the previous `unmask gdm3` leaned on an alias a future image need not keep; that observation is recorded as a field note.
 
 ## [0.9.0] - 2026-09-07
@@ -24,9 +25,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **`jetson/knowledge/` — domain content as data**, separate from the CLI that renders it, one module per topic. `boot_mode.py` is the first: a summary, ordered claims (each with the commands it justifies, source ids, and a confidence), a source table, and an explicit gap list, all JSON-serialisable via `as_dict()`. This is a deliberately minimal *local* shape, not a repo-wide citation schema — when a schema lands, this module is what it has to fit.
 - **`docs/knowledge/boot-mode.md`** — the prose mirror of the topic, with per-section source ids, the source table, the unsourced field notes, and the known gaps stated in full.
 - **Explain entries and tests for the new surface** — `explain boot`, `explain boot mode`, and `tests/test_boot.py`, which covers both verbs in text and JSON and guards the sourcing contract (no claim may cite a source id that does not exist; every source carries a title and an https URL).
-
 - **A 1000-line cap on tracked `.py` / `.md` files** (`tests/test_file_length.py`), parametrised one case per file, excluding the vendored `.claude/skills/` tree. A file at the cap gets split, not a raised cap.
-
 
 ### Fixed
 
